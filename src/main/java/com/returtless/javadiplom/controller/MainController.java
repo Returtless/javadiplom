@@ -1,5 +1,8 @@
 package com.returtless.javadiplom.controller;
 
+import com.returtless.javadiplom.dto.TokenDTO;
+import com.returtless.javadiplom.dto.UserDTO;
+import com.returtless.javadiplom.service.AuthService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,25 +14,30 @@ import java.io.IOException;
 @RequestMapping("/")
 public class MainController {
 
-    @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody String login) {
-        return new ResponseEntity<>(HttpStatus.OK);
+    private AuthService authService;
+
+    @PostMapping("login")
+    public TokenDTO login(@RequestBody UserDTO userDTO) {
+        var token = new TokenDTO();
+        token.setValue(authService.getToken(userDTO));
+        return token;
     }
 
-    @PostMapping("/logout")
-    public ResponseEntity<?> logout(@RequestHeader("auth-token") String authToken) {
-        return new ResponseEntity<>(HttpStatus.OK);
+    @PostMapping("logout")
+    public ResponseEntity<?> logout(@RequestHeader("auth-token") String token) {
+        authService.removeToken(token);
+        return new ResponseEntity(HttpStatus.OK);
     }
 
     @GetMapping("/list")
     public ResponseEntity<?> list(@RequestHeader("auth-token") String authToken,
-                                                  @RequestParam("limit") int limit) throws Exception {
+                                  @RequestParam("limit") int limit) throws Exception {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @GetMapping("/file")
     public ResponseEntity<?> download(@RequestHeader("auth-token") String authToken,
-                                             @RequestParam("filename") String fileName) throws IOException {
+                                      @RequestParam("filename") String fileName) throws IOException {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
@@ -42,13 +50,13 @@ public class MainController {
     @PutMapping("/file")
     public ResponseEntity<String> rename(@RequestHeader("auth-token") String authToken,
                                          @RequestParam("filename") String fileName,
-                                         @RequestBody String newFileName){
+                                         @RequestBody String newFileName) {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @PostMapping("/file")
     public ResponseEntity<String> upload(@RequestHeader("auth-token") String authToken,
-                                         @RequestParam("filename") String fileName, MultipartFile file){
+                                         @RequestParam("filename") String fileName, MultipartFile file) {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
