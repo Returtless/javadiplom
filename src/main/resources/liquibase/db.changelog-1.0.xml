@@ -132,4 +132,42 @@
 
         </createTable>
     </changeSet>
+    
+    <changeSet id="1.0.6" author="vladislav.likhachev">
+        <insert tableName="roles">
+            <column name="name" value="USER"/>
+        </insert>
+
+        <insert tableName="roles">
+            <column name="name" value="ADMIN"/>
+        </insert>
+    </changeSet>
+    
+    <changeSet id="1.0.7" author="vladislav.likhachev">
+        <insert tableName="users">
+            <column name="username" value="admin"/>
+            <column name="email" value="admin@admin.com"/>
+            <column name="first_name" value="admin"/>
+            <column name="last_name" value="admin"/>
+            <column name="password" value="admin"/>
+        </insert>
+        <insert tableName="users">
+            <column name="username" value="user"/>
+            <column name="email" value="user@user.com"/>
+            <column name="first_name" value="user"/>
+            <column name="last_name" value="user"/>
+            <column name="password" value="user"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="1.0.8" author="vladislav.likhachev">
+        <insert tableName="user_roles">
+            <column name="user_id" value="1"/>
+            <column name="role_id" value="1"/>
+        </insert>
+        <insert tableName="user_roles">
+            <column name="user_id" value="2"/>
+            <column name="role_id" value="2"/>
+        </insert>
+    </changeSet>
 </databaseChangeLog>
