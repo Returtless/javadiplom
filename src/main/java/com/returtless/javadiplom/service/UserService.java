@@ -19,14 +19,14 @@ public class UserService {
     private final UserRepository userRepository;
 
     public User findByLogin(String login) {
-        var user = userRepository.findByUsername(login)
+        User user = userRepository.findByUsername(login)
                 .orElseThrow(() -> new NotFoundException(format(USER_LOGIN_NOT_FOUND, login)));
         log.info("User: {} found by login: {}", user, login);
         return user;
     }
 
     public User findById(Long id) {
-        var user = userRepository.findById(id)
+        User user = userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(format(USER_ID_NOT_FOUND, id)));
         log.info("User: {} found by id: {}", user, id);
         return user;

@@ -3,6 +3,7 @@ package com.returtless.javadiplom.service;
 import com.returtless.javadiplom.auth.JwtTokenProvider;
 import com.returtless.javadiplom.dto.UserDTO;
 import com.returtless.javadiplom.model.Token;
+import com.returtless.javadiplom.model.User;
 import com.returtless.javadiplom.repository.TokenRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -22,9 +23,9 @@ public class AuthService {
 
     public String getToken(UserDTO userDTO) {
         try {
-            var login = userDTO.getLogin();
+            String login = userDTO.getLogin();
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(login, userDTO.getPassword()));
-            var user = userService.findByLogin(login);
+            User user = userService.findByLogin(login);
             return jwtTokenProvider.createToken(login, user.getRoles());
         } catch (AuthenticationException e) {
             throw new BadCredentialsException("Неизвестные логин или пароль");
@@ -32,7 +33,7 @@ public class AuthService {
     }
 
     public void removeToken(String token) {
-        var removedToken = new Token();
+        Token removedToken = new Token();
         removedToken.setToken(token);
         tokenRepository.save(removedToken);
     }

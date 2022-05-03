@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Date;
 import java.util.List;
@@ -40,16 +41,16 @@ public class FileService {
 
     @PostConstruct
     private void init() {
-        var checkPath = Paths.get(path);
+        Path checkPath = Paths.get(path);
         if (!Files.exists(checkPath)) {
-            var file = new java.io.File(path);
+            java.io.File file = new java.io.File(path);
             file.mkdir();
         }
     }
 
     public List<FileDTO> getFiles(String token, int limit) {
-        var username = getUsername(token);
-        var files = fileCrudRepository.findByUsernameAndStatus(username, Status.ACTIVE);
+        String username = getUsername(token);
+        List<File> files = fileCrudRepository.findByUsernameAndStatus(username, Status.ACTIVE);
         return files.stream()
                 .limit(limit)
                 .map(this::convertFromFile)
@@ -57,16 +58,16 @@ public class FileService {
     }
 
     public java.io.File getFile(String token, String filename) {
-        var username = getUsername(token);
-        var fullPath = fileCrudRepository.findByUsernameAndNameAndStatus(username, filename, Status.ACTIVE)
+        String username = getUsername(token);
+        String fullPath = fileCrudRepository.findByUsernameAndNameAndStatus(username, filename, Status.ACTIVE)
                 .orElseThrow(() -> new NotFoundException(format("Файл с именем [%s] не найден.", filename)))
                 .getPath();
         return new java.io.File(fullPath + "//" + filename);
     }
 
     public void renameFile(String token, String filename, String newName) {
-        var username = getUsername(token);
-        var file = fileCrudRepository.findByUsernameAndNameAndStatus(username, filename, Status.ACTIVE)
+        String username = getUsername(token);
+        File file = fileCrudRepository.findByUsernameAndNameAndStatus(username, filename, Status.ACTIVE)
                 .orElseThrow(() -> new NotFoundException(format("Файл с именем [%s] не найден.", filename)));
         if (fileRepository.renameFile(filename, file.getPath(), newName)) {
             file.setName(newName);
@@ -77,12 +78,12 @@ public class FileService {
     }
 
     public void uploadFile(String token, MultipartFile multipartFile, String fileName) {
-        var username = getUsername(token);
-        var fullPath = format(FULL_PATH, path, username);
+        String username = getUsername(token);
+        String fullPath = format(FULL_PATH, path, username);
         try {
             if (fileRepository.saveFile(multipartFile, fileName, fullPath)) {
-                var now = new Date(System.currentTimeMillis());
-                var file = File.builder()
+                Date now = new Date(System.currentTimeMillis());
+                File file = File.builder()
                         .name(fileName)
                         .path(fullPath)
                         .username(username)
@@ -102,8 +103,8 @@ public class FileService {
     }
 
     public void deleteFile(String token, String filename) {
-        var username = getUsername(token);
-        var fullPath = format(FULL_PATH, path, username);
+        String username = getUsername(token);
+        String fullPath = format(FULL_PATH, path, username);
         if (fileRepository.deleteFile(filename, fullPath)) {
             File file = fileCrudRepository.findByUsernameAndNameAndStatus(username, filename, Status.ACTIVE)
                     .orElseThrow(() -> new FileException(format("Файл с именем [%s] не найден.", filename)));

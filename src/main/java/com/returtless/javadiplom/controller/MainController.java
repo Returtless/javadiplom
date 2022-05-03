@@ -3,6 +3,7 @@ package com.returtless.javadiplom.controller;
 import com.returtless.javadiplom.dto.TokenDTO;
 import com.returtless.javadiplom.dto.UserDTO;
 import com.returtless.javadiplom.service.AuthService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,11 +15,12 @@ import java.io.IOException;
 @RequestMapping("/")
 public class MainController {
 
+   @Autowired
     private AuthService authService;
 
     @PostMapping("login")
     public TokenDTO login(@RequestBody UserDTO userDTO) {
-        var token = new TokenDTO();
+        TokenDTO token = new TokenDTO();
         token.setValue(authService.getToken(userDTO));
         return token;
     }
