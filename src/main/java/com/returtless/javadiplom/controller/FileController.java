@@ -2,10 +2,7 @@ package com.returtless.javadiplom.controller;
 
 import com.returtless.javadiplom.dto.FileDTO;
 import com.returtless.javadiplom.dto.RenameFileDTO;
-import com.returtless.javadiplom.dto.TokenDTO;
-import com.returtless.javadiplom.dto.UserDTO;
 import com.returtless.javadiplom.exception.NotFoundException;
-import com.returtless.javadiplom.service.AuthService;
 import com.returtless.javadiplom.service.FileService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,27 +22,10 @@ import static java.lang.String.format;
 @RestController
 @Slf4j
 @RequestMapping("/")
-public class MainController {
+public class FileController {
 
-    @Autowired
-    private AuthService authService;
     @Autowired
     private FileService fileService;
-
-    @PostMapping("login")
-    public TokenDTO login(@RequestBody UserDTO userDTO) {
-        TokenDTO token = new TokenDTO();
-        token.setValue(authService.getToken(userDTO));
-        log.info(format("Успешная авторизация пользователя %s", userDTO.getLogin()));
-        return token;
-    }
-
-    @PostMapping("logout")
-    public ResponseEntity<?> logout(@RequestHeader("auth-token") String token) {
-        authService.removeToken(token);
-        log.info("Пользователь вышел из системы");
-        return new ResponseEntity(HttpStatus.OK);
-    }
 
     @GetMapping("/list")
     public List<FileDTO> getAllFiles(@RequestHeader("auth-token") String authToken, @RequestParam("limit") int limit) {
