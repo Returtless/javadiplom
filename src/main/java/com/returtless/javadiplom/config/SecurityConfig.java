@@ -23,7 +23,8 @@ import javax.sql.DataSource;
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Setter(onMethod = @__({@Autowired}))
     private DataSource dataSource;
-
+    @Autowired
+    private CustomAuthenticationProvider authProvider;
     private final JwtTokenProvider jwtTokenProvider;
 
     public SecurityConfig(JwtTokenProvider jwtTokenProvider) {
@@ -33,6 +34,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         auth.jdbcAuthentication().dataSource(dataSource);
+        auth.authenticationProvider(authProvider);
     }
 
     @Bean
