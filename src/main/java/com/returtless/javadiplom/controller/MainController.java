@@ -7,6 +7,7 @@ import com.returtless.javadiplom.dto.UserDTO;
 import com.returtless.javadiplom.exception.NotFoundException;
 import com.returtless.javadiplom.service.AuthService;
 import com.returtless.javadiplom.service.FileService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
@@ -19,7 +20,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
+import static java.lang.String.format;
+
 @RestController
+@Slf4j
 @RequestMapping("/")
 public class MainController {
 
@@ -32,58 +36,54 @@ public class MainController {
     public TokenDTO login(@RequestBody UserDTO userDTO) {
         TokenDTO token = new TokenDTO();
         token.setValue(authService.getToken(userDTO));
+        log.info(format("Успешная авторизация пользователя %s", userDTO.getLogin()));
         return token;
     }
 
     @PostMapping("logout")
     public ResponseEntity<?> logout(@RequestHeader("auth-token") String token) {
         authService.removeToken(token);
+        log.info("Пользователь вышел из системы");
         return new ResponseEntity(HttpStatus.OK);
     }
 
     @GetMapping("/list")
-    public List<FileDTO> getAllFiles(@RequestHeader("auth-token") String authToken,
-                                     @RequestParam("limit") int limit) {
+    public List<FileDTO> getAllFiles(@RequestHeader("auth-token") String authToken, @RequestParam("limit") int limit) {
         return fileService.getFiles(authToken, limit);
     }
 
     @GetMapping("/file")
-    public ResponseEntity<byte[]> download(@RequestHeader("auth-token") String authToken,
-                                           @RequestParam("filename") String fileName) throws IOException {
+    public ResponseEntity<byte[]> download(@RequestHeader("auth-token") String authToken, @RequestParam("filename") String fileName) throws IOException {
         File file = fileService.getFile(authToken, fileName);
         if (file.exists()) {
             Path path = Paths.get(file.getAbsolutePath());
             byte[] bytes = Files.readAllBytes(path);
             String probeContentType = Files.probeContentType(path);
-            return ResponseEntity.ok()
-                    .header(HttpHeaders.CONTENT_DISPOSITION,
-                            ContentDisposition.attachment().filename(file.getName()).build().toString())
-                    .contentType(probeContentType != null ? MediaType.valueOf(probeContentType) : MediaType.APPLICATION_OCTET_STREAM)
-                    .body(bytes);
+            return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment().filename(file.getName()).build().toString()).contentType(probeContentType != null ? MediaType.valueOf(probeContentType) : MediaType.APPLICATION_OCTET_STREAM).body(bytes);
         } else {
+            log.error(format("Файл %s отсутствует", fileName));
             throw new NotFoundException("Отсутствует файл для скачивания");
         }
     }
 
     @DeleteMapping("/file")
-    public ResponseEntity<?> delete(@RequestHeader("auth-token") String authToken,
-                                    @RequestParam("filename") String fileName) {
+    public ResponseEntity<?> delete(@RequestHeader("auth-token") String authToken, @RequestParam("filename") String fileName) {
         fileService.deleteFile(authToken, fileName);
+        log.info(format("Файл %s успешно удален", fileName));
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @PutMapping("/file")
-    public ResponseEntity<?> rename(@RequestHeader("auth-token") String authToken,
-                                    @RequestParam("filename") String fileName,
-                                    @RequestBody RenameFileDTO renameFile) {
+    public ResponseEntity<?> rename(@RequestHeader("auth-token") String authToken, @RequestParam("filename") String fileName, @RequestBody RenameFileDTO renameFile) {
         fileService.renameFile(authToken, fileName, renameFile.getNewName());
+        log.info(format("Название файла изменено на %s", renameFile.getNewName()));
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @PostMapping("/file")
-    public ResponseEntity<?> upload(@RequestHeader("auth-token") String authToken,
-                                    @RequestParam("filename") String fileName, MultipartFile file) {
+    public ResponseEntity<?> upload(@RequestHeader("auth-token") String authToken, @RequestParam("filename") String fileName, MultipartFile file) {
         fileService.uploadFile(authToken, file, fileName);
+        log.info(format("Файл %s успешно загружен", fileName));
         return new ResponseEntity<>(HttpStatus.OK);
     }
 

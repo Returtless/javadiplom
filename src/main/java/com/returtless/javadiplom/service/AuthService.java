@@ -6,6 +6,7 @@ import com.returtless.javadiplom.model.Token;
 import com.returtless.javadiplom.model.User;
 import com.returtless.javadiplom.repository.TokenRepository;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -13,6 +14,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Service;
 
 @Service
+@Slf4j
 @AllArgsConstructor
 public class AuthService {
 
@@ -28,6 +30,7 @@ public class AuthService {
             User user = userService.findByLogin(login);
             return jwtTokenProvider.createToken(login, user.getRoles());
         } catch (AuthenticationException e) {
+            log.error("Неизвестные логин или пароль");
             throw new BadCredentialsException("Неизвестные логин или пароль");
         }
     }
