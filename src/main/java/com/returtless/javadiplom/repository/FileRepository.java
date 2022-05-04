@@ -1,6 +1,7 @@
 package com.returtless.javadiplom.repository;
 
 import lombok.Cleanup;
+import org.springframework.stereotype.Repository;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.BufferedOutputStream;
@@ -10,12 +11,14 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-
+@Repository
 public class FileRepository {
 
     public boolean saveFile(MultipartFile multipartFile, String fileName, String path) throws IOException {
         File file = new File(path + fileName);
-        if (file.exists() || multipartFile.isEmpty()) return false;
+        if (file.exists() || multipartFile.isEmpty()) {
+            return false;
+        }
 
         Path checkPath = Paths.get(path);
         if (!Files.exists(checkPath)) {
@@ -24,7 +27,7 @@ public class FileRepository {
         }
 
         byte[] bytes = multipartFile.getBytes();
-        @Cleanup BufferedOutputStream stream = new BufferedOutputStream(new FileOutputStream(file));
+        @Cleanup BufferedOutputStream stream = new BufferedOutputStream(Files.newOutputStream(file.toPath()));
         stream.write(bytes);
         return true;
     }
@@ -38,6 +41,6 @@ public class FileRepository {
     public boolean renameFile(String fileName, String path, String newName) {
         File file = new File(path + fileName);
         if (!file.exists()) return false;
-        return file.renameTo(new File(path + "//" + newName));
+        return file.renameTo(new File(path + "/" + newName));
     }
 }

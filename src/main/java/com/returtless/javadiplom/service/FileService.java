@@ -8,7 +8,10 @@ import com.returtless.javadiplom.model.File;
 import com.returtless.javadiplom.model.Status;
 import com.returtless.javadiplom.repository.FileCrudRepository;
 import com.returtless.javadiplom.repository.FileRepository;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.PostConstruct;
@@ -23,9 +26,11 @@ import java.util.stream.Collectors;
 import static com.returtless.javadiplom.auth.JwtTokenProvider.BEARER_LENGTH;
 import static java.lang.String.format;
 
+@Service
 public class FileService {
+    @Value("${files.path}")
     private String path;
-    private final static String FULL_PATH = "%s\\%s\\";
+    private final static String FULL_PATH = "%s/%s/";
 
     private final FileRepository fileRepository;
     private final JwtTokenProvider tokenProvider;
@@ -62,7 +67,7 @@ public class FileService {
         String fullPath = fileCrudRepository.findByUsernameAndNameAndStatus(username, filename, Status.ACTIVE)
                 .orElseThrow(() -> new NotFoundException(format("Файл с именем [%s] не найден.", filename)))
                 .getPath();
-        return new java.io.File(fullPath + "//" + filename);
+        return new java.io.File(fullPath + "/" + filename);
     }
 
     public void renameFile(String token, String filename, String newName) {
@@ -120,7 +125,7 @@ public class FileService {
     private FileDTO convertFromFile(File file) {
         return FileDTO.builder()
                 .filename(file.getName())
-                .size(file.getSize())
+                .size((int) file.getSize())
                 .build();
     }
 }

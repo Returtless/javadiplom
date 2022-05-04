@@ -7,5 +7,5 @@ import lombok.Data;
 @Builder
 public class FileDTO {
     private String filename;
-    private long size;
+    private int size;
 }
