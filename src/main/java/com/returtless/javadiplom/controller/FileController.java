@@ -4,6 +4,7 @@ import com.returtless.javadiplom.dto.FileDTO;
 import com.returtless.javadiplom.dto.RenameFileDTO;
 import com.returtless.javadiplom.exception.NotFoundException;
 import com.returtless.javadiplom.service.FileService;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
@@ -21,6 +22,7 @@ import static java.lang.String.format;
 
 @RestController
 @Slf4j
+@AllArgsConstructor
 @RequestMapping("/")
 public class FileController {
 
