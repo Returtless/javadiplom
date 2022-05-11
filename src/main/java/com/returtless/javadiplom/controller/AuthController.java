@@ -3,6 +3,8 @@ package com.returtless.javadiplom.controller;
 import com.returtless.javadiplom.dto.TokenDTO;
 import com.returtless.javadiplom.dto.UserDTO;
 import com.returtless.javadiplom.service.AuthService;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
@@ -12,6 +14,8 @@ import static java.lang.String.format;
 
 @RestController
 @Slf4j
+@AllArgsConstructor
+@NoArgsConstructor
 @RequestMapping("/")
 public class AuthController {
 

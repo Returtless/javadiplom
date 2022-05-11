@@ -23,10 +23,13 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @RunWith(SpringRunner.class)
 public class FileServiceTest {
-    private static String token = "Bearer token";
-    private static String user = "admin";
+    private static final String TOKEN = "Bearer token";
+    private static final String USER = "admin";
+    private static final String TEST = "test";
+
+    private static final File FILE = new File(1L, new Date(), new Date(), Status.ACTIVE, TEST, USER, "path", 100L);
+
     private static FileService fileService;
-    private static File file = new File(1L, new Date(), new Date(), Status.ACTIVE, "test", user, "path", 100L);
 
     @BeforeAll
     public static void init() {
@@ -34,37 +37,37 @@ public class FileServiceTest {
         JwtTokenProvider jwtTokenProvider = Mockito.mock(JwtTokenProvider.class);
         FileCrudRepository fileLocalRepository = Mockito.mock(FileCrudRepository.class);
 
-        Mockito.when(jwtTokenProvider.getUserName(token.substring(7))).thenReturn(user);
-        Mockito.when(fileLocalRepository.findByUsernameAndStatus(user, Status.ACTIVE)).thenReturn(Collections.singletonList(file));
-        Mockito.when(fileLocalRepository.findByUsernameAndNameAndStatus(user, "test", Status.ACTIVE))
-                .thenReturn(Optional.of(file));
+        Mockito.when(jwtTokenProvider.getUserName(TOKEN.substring(7))).thenReturn(USER);
+        Mockito.when(fileLocalRepository.findByUsernameAndStatus(USER, Status.ACTIVE)).thenReturn(Collections.singletonList(FILE));
+        Mockito.when(fileLocalRepository.findByUsernameAndNameAndStatus(USER, TEST, Status.ACTIVE))
+                .thenReturn(Optional.of(FILE));
 
         fileService = new FileService(fileRepository, jwtTokenProvider, fileLocalRepository);
     }
 
     @Test
-    void whenGetFilesThenReturnsList() {
-        List<FileDTO> filesDTO = fileService.getFiles(token, 10);
+    void getFilesThenReturnsListTest() {
+        List<FileDTO> filesDTO = fileService.getFiles(TOKEN, 10);
         assertEquals(filesDTO.size(), 1);
-        assertEquals("test", filesDTO.get(0).getFilename());
+        assertEquals(TEST, filesDTO.get(0).getFilename());
     }
 
     @Test
-    void whenGetFileThenReturnFileWithRightProp() {
-        java.io.File javaFile = fileService.getFile(token, "test");
-        assertEquals("test", javaFile.getName());
+    void getFileThenReturnFileWithRightPropTest() {
+        java.io.File javaFile = fileService.getFile(TOKEN, TEST);
+        assertEquals(TEST, javaFile.getName());
         assertEquals("path/test", javaFile.getPath());
     }
 
     @Test
-    void whenRenameFileThenExceptionThrows() {
-        Throwable thrown = assertThrows(NotFoundException.class, () -> fileService.renameFile(token, "", ""));
+    void renameFileThenExceptionThrowsTest() {
+        Throwable thrown = assertThrows(NotFoundException.class, () -> fileService.renameFile(TOKEN, "", ""));
         assertNotNull(thrown.getMessage());
     }
 
     @Test
-    void whenUploadFileThenExceptionThrows() {
-        Throwable thrown = assertThrows(FileException.class, () -> fileService.uploadFile(token, null, ""));
+    void uploadFileThenExceptionThrowsTest() {
+        Throwable thrown = assertThrows(FileException.class, () -> fileService.uploadFile(TOKEN, null, ""));
         assertNotNull(thrown.getMessage());
     }
 }

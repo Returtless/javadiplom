@@ -1,78 +1,99 @@
 package com.returtless.javadiplom.controller;
 
 import com.returtless.javadiplom.auth.JwtTokenProvider;
-import com.returtless.javadiplom.config.CustomAuthenticationProvider;
-import com.returtless.javadiplom.config.SecurityConfig;
 import com.returtless.javadiplom.dto.FileDTO;
+import com.returtless.javadiplom.dto.RenameFileDTO;
 import com.returtless.javadiplom.dto.UserDTO;
 import com.returtless.javadiplom.model.File;
+import com.returtless.javadiplom.model.Status;
+import com.returtless.javadiplom.repository.FileCrudRepository;
+import com.returtless.javadiplom.repository.FileRepository;
+import com.returtless.javadiplom.service.AuthService;
 import com.returtless.javadiplom.service.FileService;
-import com.returtless.javadiplom.service.UserService;
-import lombok.SneakyThrows;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Bean;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Date;
 import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import java.util.Optional;
 
 @RunWith(SpringRunner.class)
-@WebMvcTest(FileController.class)
 public class FileControllerTest {
-    private MockMvc mockMvc;
-    @Mock
-    FileService mockFileService;
 
-    @Mock
-    JwtTokenProvider jwtTokenProvider;
-    @Mock
-    SecurityConfig securityConfig;
-    private FileController controller;
+    FileService fileService;
+    AuthService authService;
+    FileRepository fileRepository;
+    FileCrudRepository fileLocalRepository;
 
-    UserDTO userDTO = new UserDTO("Username", "password");
+    List<FileDTO> testList;
+    List<File> fileList;
+
+    private final static String TEST = "test";
+    private final static String TOKEN = "Bearer test";
 
     @Before
-    public void setup() throws Exception {
-        controller= new FileController(mockFileService);
-        this.mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
-    }
+    public void setup() {
 
-    @Test
-    public void testList() throws Exception {
-        List<FileDTO> testList = new ArrayList<>();
+        testList = new ArrayList<>();
         testList.add(new FileDTO("file1", 10));
         testList.add(new FileDTO("file2", 20));
         testList.add(new FileDTO("file3", 30));
-        Mockito.when(mockFileService.getFiles("test", 3))
-                .thenReturn(testList);
-        List<FileDTO> actual =
-                new FileController(mockFileService).getAllFiles("Bearer test",3);
 
+        fileList = new ArrayList<>();
+        fileList.add(new File(1, new Date(), new Date(), Status.ACTIVE, "file1", TEST, TEST, 10));
+        fileList.add(new File(2, new Date(), new Date(), Status.ACTIVE, "file2", TEST, TEST, 20));
+        fileList.add(new File(3, new Date(), new Date(), Status.ACTIVE, "file3", TEST, TEST, 30));
+
+        fileRepository = Mockito.mock(FileRepository.class);
+        JwtTokenProvider jwtTokenProvider = Mockito.mock(JwtTokenProvider.class);
+        fileLocalRepository = Mockito.mock(FileCrudRepository.class);
+
+        fileService = new FileService(fileRepository, jwtTokenProvider, fileLocalRepository);
+        Mockito.when(jwtTokenProvider.getUserName(TEST)).thenReturn(TEST);
+
+        authService = Mockito.mock(AuthService.class);
+        Mockito.when(authService.getToken(new UserDTO(TEST, TEST))).thenReturn(TOKEN);
+    }
+
+    @Test
+    public void getAllFilesTest() {
+        Mockito.when(fileLocalRepository.findByUsernameAndStatus(TEST, Status.ACTIVE)).thenReturn(fileList);
+        List<FileDTO> actual = new FileController(fileService).getAllFiles(TOKEN, 3);
         List<FileDTO> expected = new ArrayList(testList);
         Assertions.assertEquals(actual, expected);
     }
 
+    @Test
+    public void deleteTest() {
+        Mockito.when(fileLocalRepository.findByUsernameAndNameAndStatus(TEST, TEST, Status.ACTIVE)).thenReturn(Optional.of(fileList.get(0)));
+        Assertions.assertDoesNotThrow(() -> new FileController(fileService).delete(TOKEN, TEST));
+    }
+
+    @Test
+    public void renameTest() {
+        Mockito.when(fileLocalRepository.findByUsernameAndNameAndStatus(TEST, TEST, Status.ACTIVE)).thenReturn(Optional.of(fileList.get(0)));
+        Mockito.when(fileRepository.renameFile(TEST, TEST, "new test")).thenReturn(true);
+        Assertions.assertDoesNotThrow(() -> new FileController(fileService).rename(TOKEN, TEST, new RenameFileDTO("new test")));
+    }
+
+    @Test
+    public void uploadTest() throws Exception {
+        MockMultipartFile multipartFile = new MockMultipartFile(TEST, TEST.getBytes());
+        Mockito.when(fileRepository.saveFile(multipartFile, TEST, "null/test/")).thenReturn(true);
+        Assertions.assertDoesNotThrow(() -> new FileController(fileService).upload(TOKEN, TEST, multipartFile));
+    }
+
+    @Test
+    public void downloadTest() {
+        /*Mockito.when(fileLocalRepository.findByUsernameAndNameAndStatus(TEST, TEST, Status.ACTIVE))
+                .thenReturn(Optional.of(new File(1, new Date(), new Date(), Status.ACTIVE, "file1", TEST, TEST, 10)));
+        java.io.File file = new java.io.File("file1");
+        Assertions.assertDoesNotThrow(() -> new FileController(fileService).download(TOKEN, TEST));*/
+    }
 }
